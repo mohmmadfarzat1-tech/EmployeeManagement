@@ -9,7 +9,7 @@ namespace EmployeeManagement
 
     public class EmployeeManager
     {
-        private List<Employee> employees = new List<Employee>();
+        private List<Employee> _employees = new List<Employee>();
 
         // كائن من الـ Delegate لاستدعائه عند الإضافة
         public EmployeeNotificationHandler OnEmployeeAdded;
@@ -17,16 +17,18 @@ namespace EmployeeManagement
         // 11. تعريف الـ Event الخاص بحذف موظف
         public event EmployeeNotificationHandler OnEmployeeDeleted;
 
+
+
         // 1. إضافة موظف جديد + استدعاء الـ Delegate
         public void AddEmployee(Employee emp)
         {
-            if (employees.Any(x => x.Id == emp.Id))
+            if (_employees.Any(x => x.Id == emp.Id))
             {
                 Console.WriteLine("خطأ: يوجد موظف مسجل بنفس الرقم التعريفي مسبقاً.");
                 return;
             }
 
-            employees.Add(emp);
+            _employees.Add(emp);
 
             // استدعاء الـ Delegate إذا كان مرتبطاً بدالة
             OnEmployeeAdded?.Invoke($"Employee Added Successfully: {emp.FullName}");
@@ -35,14 +37,14 @@ namespace EmployeeManagement
         // 2. عرض جميع الموظفين (باستخدام دالة DisplayInfo الموروثة)
         public void ViewEmployees()
         {
-            if (employees.Count == 0)
+            if (_employees.Count == 0)
             {
                 Console.WriteLine("لا يوجد موظفون مسجلون حالياً.");
                 return;
             }
 
             Console.WriteLine("\n--- قائمة الموظفين ---");
-            foreach (var emp in employees)
+            foreach (Employee emp in _employees)
             {
                 emp.DisplayInfo();
             }
@@ -51,7 +53,7 @@ namespace EmployeeManagement
         // 3 & 8. البحث عن موظف مع رمي خطأ إذا لم يكن موجوداً لالتقاطه بـ try-catch
         public Employee SearchEmployeeById(int id)
         {
-            var emp = employees.FirstOrDefault(x => x.Id == id);
+            var emp = _employees.FirstOrDefault(x => x.Id == id);
             if (emp == null)
             {
                 throw new KeyNotFoundException($"الموظف صاحب الرقم ({id}) غير موجود في النظام.");
@@ -65,7 +67,7 @@ namespace EmployeeManagement
             // نستخدم دالة البحث؛ إذا لم تجده سترمي استثناءً مباشرة
             var emp = SearchEmployeeById(id);
 
-            employees.Remove(emp);
+            _employees.Remove(emp);
 
             // إطلاق الـ Event عند نجاح الحذف
             OnEmployeeDeleted?.Invoke($"Employee Deleted: {emp.FullName} (ID: {id})");
@@ -88,7 +90,7 @@ namespace EmployeeManagement
         {
             Dictionary<string, int> deptCounts = new Dictionary<string, int>();
 
-            foreach (var emp in employees)
+            foreach (var emp in _employees)
             {
                 if (deptCounts.ContainsKey(emp.Department))
                 {
@@ -112,26 +114,64 @@ namespace EmployeeManagement
         // أ. أعلى راتب
         public Employee GetHighestSalaryEmployee()
         {
-            return employees.OrderByDescending(x => x.Salary).FirstOrDefault();
+            return _employees.OrderByDescending(x => x.Salary).FirstOrDefault();
         }
 
         // ب. متوسط الرواتب
         public decimal GetAverageSalary()
         {
-            if (employees.Count == 0) return 0;
-            return employees.Average(x => x.Salary);
+            if (_employees.Count == 0) return 0;
+            return _employees.Average(x => x.Salary);
         }
 
         // ج. جميع موظفي قسم معين
         public List<Employee> GetEmployeesByDepartment(string department)
         {
-            return employees.Where(x => x.Department.Equals(department, StringComparison.OrdinalIgnoreCase)).ToList();
+            return _employees.Where(x => x.Department.Equals(department, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         // د. ترتيب الموظفين حسب الراتب تنازلياً
         public List<Employee> OrderBySalaryDesc()
         {
-            return employees.OrderByDescending(x => x.Salary).ToList();
+            return _employees.OrderByDescending(x => x.Salary).ToList();
+        }
+
+        // 6. عرض إحصائيات الأقسام
+        public void ShowDepartmentStatistics()
+        {
+            if (_employees.Count == 0)
+            {
+                Console.WriteLine("لا يوجد موظفون مسجلون حالياً.");
+                return;
+            }
+
+            var stats = _employees.GroupBy(e => e.Department);
+            foreach (var group in stats)
+            {
+                Console.WriteLine($"القسم: {group.Key} | عدد الموظفين: {group.Count()}");
+            }
+        }
+
+        // 7. عرض إحصائيات الرواتب
+        public void ShowSalaryStatistics()
+        {
+            if (_employees.Count == 0)
+            {
+                Console.WriteLine("لا يوجد موظفون مسجلون حالياً");
+                return;
+            }
+
+            var total = _employees.Sum(e => e.Salary);
+            var average = _employees.Average(e => e.Salary);
+            var max = _employees.Max(e => e.Salary);
+            var min = _employees.Min(e => e.Salary);
+
+            Console.WriteLine($"إجمالي الرواتب: {total}");
+            Console.WriteLine($"متوسط الرواتب: {average:F2}");
+            Console.WriteLine($"أعلى راتب: {max}");
+            Console.WriteLine($"أقل راتب: {min}");
         }
     }
 }
+
+    

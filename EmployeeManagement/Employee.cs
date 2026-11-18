@@ -4,10 +4,24 @@ using System.Text;
 
 namespace EmployeeManagement
 {
-    public class Employee :person
-    {  // الخصائص الأساسية للموظف
+    public class Employee : Person
+    { // 2. Encapsulation: حقول خاصة (Private Fields) مخفية عن الخارج لحماية البيانات
+        private decimal _salary;
+
+        // الخصائص الأساسية للموظف
         public int Id { get; set; }
-        public decimal Salary { get; set; }
+        
+        public decimal Salary
+        {
+            get { return _salary; }
+            set
+            {
+                // منع إدخال راتب سالب
+                if (value < 0)
+                    throw new ArgumentException("الراتب لا يمكن أن يكون قيمة سالبة.");
+                _salary = value;
+            }
+        }
         public string Department { get; set; }
 
 
